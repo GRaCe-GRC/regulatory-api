@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: regulatory-api
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: regulatory-api
+    description: Inner API for regulatory files and requirements (Regulatory database)
