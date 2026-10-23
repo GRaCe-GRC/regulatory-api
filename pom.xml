@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>io.github.gracegrc</groupId>
 	<artifactId>regulatory-api</artifactId>
-	<version>0.0.1</version>
+	<version>${revision}</version>
 	<name>regulatory-api</name>
 	<description>Inner API for regulatory files and requirements (Regulatory database)</description>
 	<url>https://github.com/GRaCe-GRC/regulatory-api</url>
@@ -24,6 +24,7 @@
 		<url>https://github.com/GRaCe-GRC/regulatory-api</url>
 	</scm>
 	<properties>
+		<revision>0.0.1-SNAPSHOT</revision>
 		<java.version>25</java.version>
 	</properties>
 	<dependencies>
