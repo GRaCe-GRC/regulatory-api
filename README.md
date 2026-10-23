@@ -2,7 +2,7 @@
 
 Inner API for regulatory files and requirements (Regulatory database).
 
-> **Status:** stores regulatory authorities in the `regulatory` database (no endpoints yet).
+> **Status:** CRUD for regulatory authorities in the `regulatory` database.
 
 ## Stack
 - Java (latest LTS at setup), Spring Boot (latest stable at setup)
@@ -23,6 +23,26 @@ On startup Flyway applies any new migrations. Entities are Java records mapped w
 |---|---|
 | `GET http://localhost:8080/actuator/health` | Health status (`UP`) |
 | `GET http://localhost:8080/actuator/info` | Application info |
+| `GET http://localhost:8080/swagger-ui.html` | API documentation (OpenAPI at `/v3/api-docs`) |
+
+## Authorities API
+
+| Method and path | Body | Response |
+|---|---|---|
+| `POST /api/v1/authorities` | `name`, `jurisdiction`, `createdBy` | `201`, empty body, `Location` header with the new authority's URL |
+| `GET /api/v1/authorities` | | `200` with the list of authorities |
+| `GET /api/v1/authorities/{id}` | | `200` with the authority |
+| `PUT /api/v1/authorities/{id}` | `name`, `jurisdiction`, `enabled` | `200` with the authority (`createdAt` and `createdBy` never change) |
+| `DELETE /api/v1/authorities/{id}` | | `204` |
+
+New authorities are `enabled`. Errors use RFC 9457 problem details: `400` for invalid input
+(with an `errors` field per property), `404` for an unknown id, `409` for a duplicate name.
+
+```bash
+curl -s -H 'Content-Type: application/json' \
+  -d '{"name":"European Banking Authority","jurisdiction":"EU","createdBy":"me"}' \
+  http://localhost:8080/api/v1/authorities
+```
 
 ## Database
 
