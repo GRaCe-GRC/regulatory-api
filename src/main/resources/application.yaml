@@ -1,6 +1,13 @@
 spring:
   application:
     name: regulatory-api
+  datasource:
+    url: jdbc:postgresql://${REGULATORY_DB_HOST:localhost}:${REGULATORY_DB_PORT:5432}/${REGULATORY_DB_NAME:regulatory}
+    username: ${REGULATORY_DB_USERNAME:regulatory_api}
+    password: ${REGULATORY_DB_PASSWORD:regulatory_api}
+  data:
+    jdbc:
+      dialect: postgresql
 
 management:
   endpoints:
