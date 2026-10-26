@@ -16,6 +16,7 @@ import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityNotFound
 import io.github.gracegrc.regulatoryapi.domain.service.AuthorityService;
 import io.github.gracegrc.regulatoryapi.domain.service.FileService;
 import io.github.gracegrc.regulatoryapi.domain.service.FrameworkService;
+import io.github.gracegrc.regulatoryapi.domain.service.RequirementService;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -46,6 +47,9 @@ class RegulatoryApiControllerTest {
 
 	@MockitoBean
 	private FileService fileService;
+
+	@MockitoBean
+	private RequirementService requirementService;
 
 	@Test
 	void postCreatesTheAuthorityAndReturnsAnEmptyBody() {
