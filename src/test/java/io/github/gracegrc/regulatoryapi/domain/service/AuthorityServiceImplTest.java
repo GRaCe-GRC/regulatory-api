@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
 
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryAuthorityRequestDto;
@@ -12,6 +13,7 @@ import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryAuthorityResp
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryAuthorityUpdateRequestDto;
 import io.github.gracegrc.regulatoryapi.domain.model.entity.AuthorityEntity;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityAlreadyExistsException;
+import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityHasFrameworksException;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityNotFoundException;
 import io.github.gracegrc.regulatoryapi.domain.repository.AuthorityRepository;
 import java.time.Instant;
@@ -25,6 +27,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 
 @ExtendWith(MockitoExtension.class)
@@ -149,6 +152,16 @@ class AuthorityServiceImplTest {
 
 		assertThatThrownBy(() -> authorityService.delete(ID)).isInstanceOf(AuthorityNotFoundException.class);
 		then(authorityRepository).should(never()).deleteById(any());
+	}
+
+	@Test
+	void deleteOfAnAuthorityWithFrameworksThrowsHasFrameworks() {
+		given(authorityRepository.existsById(ID)).willReturn(true);
+		willThrow(new DataIntegrityViolationException("frameworks_authority_id_fkey")).given(authorityRepository)
+			.deleteById(ID);
+
+		assertThatThrownBy(() -> authorityService.delete(ID)).isInstanceOf(AuthorityHasFrameworksException.class)
+			.hasMessage("Authority " + ID + " has frameworks. Delete them first.");
 	}
 
 }

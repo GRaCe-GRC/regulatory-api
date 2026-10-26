@@ -2,7 +2,7 @@
 
 Inner API for regulatory files and requirements (Regulatory database).
 
-> **Status:** CRUD for regulatory authorities in the `regulatory` database.
+> **Status:** CRUD for regulatory authorities and frameworks in the `regulatory` database.
 
 ## Stack
 - Java (latest LTS at setup), Spring Boot (latest stable at setup)
@@ -36,13 +36,27 @@ On startup Flyway applies any new migrations. Entities are Java records mapped w
 | `DELETE /api/v1/authorities/{id}` | | `204` |
 
 New authorities are `enabled`. Errors use RFC 9457 problem details: `400` for invalid input
-(with an `errors` field per property), `404` for an unknown id, `409` for a duplicate name.
+(with an `errors` field per property), `404` for an unknown id, `409` for a duplicate name or when
+deleting an authority that still has frameworks.
 
 ```bash
 curl -s -H 'Content-Type: application/json' \
   -d '{"name":"European Banking Authority","jurisdiction":"EU","createdBy":"me"}' \
   http://localhost:8080/api/v1/authorities
 ```
+
+## Frameworks API
+
+| Method and path | Body | Response |
+|---|---|---|
+| `POST /api/v1/frameworks` | `authorityId`, `name`, `shortName`, `citation`, `createdBy` | `201`, empty body, `Location` header with the new framework's URL |
+| `GET /api/v1/frameworks?authorityId=` | | `200` with the list of frameworks, all of them or only the authority's |
+| `GET /api/v1/frameworks/{id}` | | `200` with the framework |
+| `PUT /api/v1/frameworks/{id}` | `name`, `shortName`, `citation`, `enabled` | `200` with the framework (`authorityId`, `createdAt` and `createdBy` never change) |
+| `DELETE /api/v1/frameworks/{id}` | | `204` |
+
+`shortName` and `citation` are optional. New frameworks are `enabled`. Errors: `404` for an unknown
+id or `authorityId`, `409` for a name that the authority already uses.
 
 ## Database
 
@@ -59,6 +73,7 @@ The defaults match the sandbox and are for local use only.
 | Table | Migration |
 |---|---|
 | `authorities` | `V1__create_authorities.sql` |
+| `frameworks` | `V2__create_frameworks.sql` |
 
 ## Test and build
 ```bash
