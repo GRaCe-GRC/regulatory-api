@@ -9,9 +9,13 @@ import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryFileUpdateReq
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryFrameworkRequestDto;
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryFrameworkResponseDto;
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryFrameworkUpdateRequestDto;
+import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryRequirementRequestDto;
+import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryRequirementResponseDto;
+import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryRequirementUpdateRequestDto;
 import io.github.gracegrc.regulatoryapi.domain.service.AuthorityService;
 import io.github.gracegrc.regulatoryapi.domain.service.FileService;
 import io.github.gracegrc.regulatoryapi.domain.service.FrameworkService;
+import io.github.gracegrc.regulatoryapi.domain.service.RequirementService;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
@@ -40,11 +44,14 @@ public class RegulatoryApiController {
 
 	private final FileService fileService;
 
+	private final RequirementService requirementService;
+
 	public RegulatoryApiController(AuthorityService authorityService, FrameworkService frameworkService,
-			FileService fileService) {
+			FileService fileService, RequirementService requirementService) {
 		this.authorityService = authorityService;
 		this.frameworkService = frameworkService;
 		this.fileService = fileService;
+		this.requirementService = requirementService;
 	}
 
 	@PostMapping("/authorities")
@@ -126,6 +133,34 @@ public class RegulatoryApiController {
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void deleteFile(@PathVariable UUID id) {
 		fileService.delete(id);
+	}
+
+	@PostMapping("/requirements")
+	public ResponseEntity<Void> createRequirement(@Valid @RequestBody RegulatoryRequirementRequestDto request) {
+		return created(requirementService.create(request));
+	}
+
+	@GetMapping("/requirements")
+	public List<RegulatoryRequirementResponseDto> findAllRequirements(@RequestParam(required = false) UUID fileId,
+			@RequestParam(required = false) UUID parentId) {
+		return requirementService.findAll(fileId, parentId);
+	}
+
+	@GetMapping("/requirements/{id}")
+	public RegulatoryRequirementResponseDto findRequirementById(@PathVariable UUID id) {
+		return requirementService.findById(id);
+	}
+
+	@PutMapping("/requirements/{id}")
+	public RegulatoryRequirementResponseDto updateRequirement(@PathVariable UUID id,
+			@Valid @RequestBody RegulatoryRequirementUpdateRequestDto request) {
+		return requirementService.update(id, request);
+	}
+
+	@DeleteMapping("/requirements/{id}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void deleteRequirement(@PathVariable UUID id) {
+		requirementService.delete(id);
 	}
 
 	private static ResponseEntity<Void> created(UUID id) {

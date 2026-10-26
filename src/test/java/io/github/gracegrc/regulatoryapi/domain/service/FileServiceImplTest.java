@@ -5,12 +5,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
 
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryFileRequestDto;
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryFileResponseDto;
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryFileUpdateRequestDto;
 import io.github.gracegrc.regulatoryapi.domain.model.entity.FileEntity;
+import io.github.gracegrc.regulatoryapi.domain.model.exception.FileHasRequirementsException;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.FileNotFoundException;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.FrameworkNotFoundException;
 import io.github.gracegrc.regulatoryapi.domain.repository.FileRepository;
@@ -27,6 +29,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 class FileServiceImplTest {
@@ -156,6 +159,16 @@ class FileServiceImplTest {
 
 		assertThatThrownBy(() -> fileService.delete(ID)).isInstanceOf(FileNotFoundException.class);
 		then(fileRepository).should(never()).deleteById(any());
+	}
+
+	@Test
+	void deleteOfAFileWithRequirementsThrowsHasRequirements() {
+		given(fileRepository.existsById(ID)).willReturn(true);
+		willThrow(new DataIntegrityViolationException("requirements_file_id_fkey")).given(fileRepository)
+			.deleteById(ID);
+
+		assertThatThrownBy(() -> fileService.delete(ID)).isInstanceOf(FileHasRequirementsException.class)
+			.hasMessage("File " + ID + " has requirements. Delete them first.");
 	}
 
 }
