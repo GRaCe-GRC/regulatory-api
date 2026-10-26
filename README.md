@@ -2,7 +2,7 @@
 
 Inner API for regulatory files and requirements (Regulatory database).
 
-> **Status:** CRUD for regulatory authorities and frameworks in the `regulatory` database.
+> **Status:** CRUD for regulatory authorities, frameworks and files in the `regulatory` database.
 
 ## Stack
 - Java (latest LTS at setup), Spring Boot (latest stable at setup)
@@ -56,7 +56,21 @@ curl -s -H 'Content-Type: application/json' \
 | `DELETE /api/v1/frameworks/{id}` | | `204` |
 
 `shortName` and `citation` are optional. New frameworks are `enabled`. Errors: `404` for an unknown
-id or `authorityId`, `409` for a name that the authority already uses.
+id or `authorityId`, `409` for a name that the authority already uses or when deleting a framework
+that still has files.
+
+## Files API
+
+| Method and path | Body | Response |
+|---|---|---|
+| `POST /api/v1/files` | `frameworkId`, `title`, `sourceUrl`, `versionLabel`, `publicationDate`, `createdBy` | `201`, empty body, `Location` header with the new file's URL |
+| `GET /api/v1/files?frameworkId=` | | `200` with the list of files, all of them or only the framework's |
+| `GET /api/v1/files/{id}` | | `200` with the file |
+| `PUT /api/v1/files/{id}` | `title`, `sourceUrl`, `versionLabel`, `publicationDate` | `200` with the file (`frameworkId`, `createdAt` and `createdBy` never change) |
+| `DELETE /api/v1/files/{id}` | | `204` |
+
+A file is one published version of a framework. `sourceUrl`, `versionLabel` and `publicationDate`
+(`YYYY-MM-DD`) are optional. Errors: `404` for an unknown id or `frameworkId`.
 
 ## Database
 
@@ -74,6 +88,7 @@ The defaults match the sandbox and are for local use only.
 |---|---|
 | `authorities` | `V1__create_authorities.sql` |
 | `frameworks` | `V2__create_frameworks.sql` |
+| `files` | `V3__create_files.sql` |
 
 ## Test and build
 ```bash

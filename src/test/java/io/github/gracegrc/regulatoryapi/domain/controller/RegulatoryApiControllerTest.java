@@ -14,6 +14,7 @@ import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityAlreadyE
 import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityHasFrameworksException;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityNotFoundException;
 import io.github.gracegrc.regulatoryapi.domain.service.AuthorityService;
+import io.github.gracegrc.regulatoryapi.domain.service.FileService;
 import io.github.gracegrc.regulatoryapi.domain.service.FrameworkService;
 import java.time.Instant;
 import java.util.List;
@@ -42,6 +43,9 @@ class RegulatoryApiControllerTest {
 
 	@MockitoBean
 	private FrameworkService frameworkService;
+
+	@MockitoBean
+	private FileService fileService;
 
 	@Test
 	void postCreatesTheAuthorityAndReturnsAnEmptyBody() {
