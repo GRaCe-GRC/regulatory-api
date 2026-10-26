@@ -1,7 +1,10 @@
 package io.github.gracegrc.regulatoryapi.domain.controller;
 
 import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityAlreadyExistsException;
+import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityHasFrameworksException;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityNotFoundException;
+import io.github.gracegrc.regulatoryapi.domain.model.exception.FrameworkAlreadyExistsException;
+import io.github.gracegrc.regulatoryapi.domain.model.exception.FrameworkNotFoundException;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpHeaders;
@@ -19,13 +22,14 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @RestControllerAdvice
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
-	@ExceptionHandler(AuthorityNotFoundException.class)
-	public ProblemDetail handleNotFound(AuthorityNotFoundException ex) {
+	@ExceptionHandler({ AuthorityNotFoundException.class, FrameworkNotFoundException.class })
+	public ProblemDetail handleNotFound(RuntimeException ex) {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
 	}
 
-	@ExceptionHandler(AuthorityAlreadyExistsException.class)
-	public ProblemDetail handleAlreadyExists(AuthorityAlreadyExistsException ex) {
+	@ExceptionHandler({ AuthorityAlreadyExistsException.class, FrameworkAlreadyExistsException.class,
+			AuthorityHasFrameworksException.class })
+	public ProblemDetail handleConflict(RuntimeException ex) {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
 	}
 
