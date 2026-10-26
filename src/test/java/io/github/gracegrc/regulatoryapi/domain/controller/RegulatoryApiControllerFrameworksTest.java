@@ -12,8 +12,10 @@ import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryFrameworkResp
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryFrameworkUpdateRequestDto;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityNotFoundException;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.FrameworkAlreadyExistsException;
+import io.github.gracegrc.regulatoryapi.domain.model.exception.FrameworkHasFilesException;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.FrameworkNotFoundException;
 import io.github.gracegrc.regulatoryapi.domain.service.AuthorityService;
+import io.github.gracegrc.regulatoryapi.domain.service.FileService;
 import io.github.gracegrc.regulatoryapi.domain.service.FrameworkService;
 import java.time.Instant;
 import java.util.List;
@@ -52,6 +54,9 @@ class RegulatoryApiControllerFrameworksTest {
 
 	@MockitoBean
 	private FrameworkService frameworkService;
+
+	@MockitoBean
+	private FileService fileService;
 
 	@Test
 	void postCreatesTheFrameworkAndReturnsAnEmptyBody() {
@@ -205,6 +210,16 @@ class RegulatoryApiControllerFrameworksTest {
 		willThrow(new FrameworkNotFoundException(ID)).given(frameworkService).delete(ID);
 
 		assertThat(mvc.delete().uri("/api/v1/frameworks/{id}", ID)).hasStatus(HttpStatus.NOT_FOUND);
+	}
+
+	@Test
+	void deleteOfAFrameworkWithFilesReturnsConflict() {
+		willThrow(new FrameworkHasFilesException(ID)).given(frameworkService).delete(ID);
+
+		assertThat(mvc.delete().uri("/api/v1/frameworks/{id}", ID)).hasStatus(HttpStatus.CONFLICT)
+			.bodyJson()
+			.isLenientlyEqualTo(
+					"{\"status\":409,\"detail\":\"Framework " + ID + " has files. Delete them first.\"}");
 	}
 
 }
