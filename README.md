@@ -2,7 +2,7 @@
 
 Inner API for regulatory files and requirements (Regulatory database).
 
-> **Status:** CRUD for regulatory authorities, frameworks and files in the `regulatory` database.
+> **Status:** CRUD for regulatory authorities, frameworks, files and requirements in the `regulatory` database.
 
 ## Stack
 - Java (latest LTS at setup), Spring Boot (latest stable at setup)
@@ -70,7 +70,24 @@ that still has files.
 | `DELETE /api/v1/files/{id}` | | `204` |
 
 A file is one published version of a framework. `sourceUrl`, `versionLabel` and `publicationDate`
-(`YYYY-MM-DD`) are optional. Errors: `404` for an unknown id or `frameworkId`.
+(`YYYY-MM-DD`) are optional. Errors: `404` for an unknown id or `frameworkId`, `409` when deleting
+a file that still has requirements.
+
+## Requirements API
+
+| Method and path | Body | Response |
+|---|---|---|
+| `POST /api/v1/requirements` | `fileId`, `parentRequirementId`, `provisionRef`, `heading`, `text`, `createdBy` | `201`, empty body, `Location` header with the new requirement's URL |
+| `GET /api/v1/requirements?fileId=&parentId=` | | `200` with the list of requirements; each filter is optional |
+| `GET /api/v1/requirements/{id}` | | `200` with the requirement |
+| `PUT /api/v1/requirements/{id}` | `provisionRef`, `heading`, `text` | `200` with the requirement (`fileId`, `parentRequirementId`, `createdAt` and `createdBy` never change) |
+| `DELETE /api/v1/requirements/{id}` | | `204` |
+
+A requirement is one provision of a file, for example `164.308(a)(4)(i)`. Requirements form a tree
+inside the file: `parentRequirementId` is optional and must be a requirement of the same file.
+`heading` and `text` are optional. Errors: `400` when the parent is in another file, `404` for an
+unknown id, `fileId` or `parentRequirementId`, `409` for a `provisionRef` that the file already
+uses or when deleting a requirement that still has child requirements.
 
 ## Database
 
@@ -89,6 +106,7 @@ The defaults match the sandbox and are for local use only.
 | `authorities` | `V1__create_authorities.sql` |
 | `frameworks` | `V2__create_frameworks.sql` |
 | `files` | `V3__create_files.sql` |
+| `requirements` | `V4__create_requirements.sql` |
 
 ## Test and build
 ```bash

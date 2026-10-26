@@ -5,6 +5,7 @@ import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryFileRequestDt
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryFileResponseDto;
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryFileUpdateRequestDto;
 import io.github.gracegrc.regulatoryapi.domain.model.entity.FileEntity;
+import io.github.gracegrc.regulatoryapi.domain.model.exception.FileHasRequirementsException;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.FileNotFoundException;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.FrameworkNotFoundException;
 import io.github.gracegrc.regulatoryapi.domain.repository.FileRepository;
@@ -12,6 +13,7 @@ import io.github.gracegrc.regulatoryapi.domain.repository.FrameworkRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,7 +63,12 @@ public class FileServiceImpl implements FileService {
 		if (!fileRepository.existsById(id)) {
 			throw new FileNotFoundException(id);
 		}
-		fileRepository.deleteById(id);
+		try {
+			fileRepository.deleteById(id);
+		}
+		catch (DataIntegrityViolationException ex) {
+			throw new FileHasRequirementsException(id);
+		}
 	}
 
 	private FileEntity findEntity(UUID id) {

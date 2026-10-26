@@ -10,11 +10,13 @@ import static org.mockito.BDDMockito.willThrow;
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryFileRequestDto;
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryFileResponseDto;
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryFileUpdateRequestDto;
+import io.github.gracegrc.regulatoryapi.domain.model.exception.FileHasRequirementsException;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.FileNotFoundException;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.FrameworkNotFoundException;
 import io.github.gracegrc.regulatoryapi.domain.service.AuthorityService;
 import io.github.gracegrc.regulatoryapi.domain.service.FileService;
 import io.github.gracegrc.regulatoryapi.domain.service.FrameworkService;
+import io.github.gracegrc.regulatoryapi.domain.service.RequirementService;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -57,6 +59,9 @@ class RegulatoryApiControllerFilesTest {
 
 	@MockitoBean
 	private FileService fileService;
+
+	@MockitoBean
+	private RequirementService requirementService;
 
 	@Test
 	void postCreatesTheFileAndReturnsAnEmptyBody() {
@@ -190,6 +195,16 @@ class RegulatoryApiControllerFilesTest {
 		willThrow(new FileNotFoundException(ID)).given(fileService).delete(ID);
 
 		assertThat(mvc.delete().uri("/api/v1/files/{id}", ID)).hasStatus(HttpStatus.NOT_FOUND);
+	}
+
+	@Test
+	void deleteOfAFileWithRequirementsReturnsConflict() {
+		willThrow(new FileHasRequirementsException(ID)).given(fileService).delete(ID);
+
+		assertThat(mvc.delete().uri("/api/v1/files/{id}", ID)).hasStatus(HttpStatus.CONFLICT)
+			.bodyJson()
+			.isLenientlyEqualTo(
+					"{\"status\":409,\"detail\":\"File " + ID + " has requirements. Delete them first.\"}");
 	}
 
 }
