@@ -6,11 +6,13 @@ import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryAuthorityResp
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryAuthorityUpdateRequestDto;
 import io.github.gracegrc.regulatoryapi.domain.model.entity.AuthorityEntity;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityAlreadyExistsException;
+import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityHasFrameworksException;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityNotFoundException;
 import io.github.gracegrc.regulatoryapi.domain.repository.AuthorityRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,7 +56,12 @@ public class AuthorityServiceImpl implements AuthorityService {
 		if (!authorityRepository.existsById(id)) {
 			throw new AuthorityNotFoundException(id);
 		}
-		authorityRepository.deleteById(id);
+		try {
+			authorityRepository.deleteById(id);
+		}
+		catch (DataIntegrityViolationException ex) {
+			throw new AuthorityHasFrameworksException(id);
+		}
 	}
 
 	private AuthorityEntity findEntity(UUID id) {

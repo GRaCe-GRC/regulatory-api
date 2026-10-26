@@ -11,8 +11,10 @@ import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryAuthorityRequ
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryAuthorityResponseDto;
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryAuthorityUpdateRequestDto;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityAlreadyExistsException;
+import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityHasFrameworksException;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityNotFoundException;
 import io.github.gracegrc.regulatoryapi.domain.service.AuthorityService;
+import io.github.gracegrc.regulatoryapi.domain.service.FrameworkService;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -37,6 +39,9 @@ class RegulatoryApiControllerTest {
 
 	@MockitoBean
 	private AuthorityService authorityService;
+
+	@MockitoBean
+	private FrameworkService frameworkService;
 
 	@Test
 	void postCreatesTheAuthorityAndReturnsAnEmptyBody() {
@@ -161,6 +166,16 @@ class RegulatoryApiControllerTest {
 		willThrow(new AuthorityNotFoundException(ID)).given(authorityService).delete(ID);
 
 		assertThat(mvc.delete().uri("/api/v1/authorities/{id}", ID)).hasStatus(HttpStatus.NOT_FOUND);
+	}
+
+	@Test
+	void deleteOfAnAuthorityWithFrameworksReturnsConflict() {
+		willThrow(new AuthorityHasFrameworksException(ID)).given(authorityService).delete(ID);
+
+		assertThat(mvc.delete().uri("/api/v1/authorities/{id}", ID)).hasStatus(HttpStatus.CONFLICT)
+			.bodyJson()
+			.isLenientlyEqualTo(
+					"{\"status\":409,\"detail\":\"Authority " + ID + " has frameworks. Delete them first.\"}");
 	}
 
 }
