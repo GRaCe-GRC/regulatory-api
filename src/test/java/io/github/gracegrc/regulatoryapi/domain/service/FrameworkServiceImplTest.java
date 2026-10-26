@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
 
 import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryFrameworkRequestDto;
@@ -13,6 +14,7 @@ import io.github.gracegrc.regulatoryapi.domain.model.dto.RegulatoryFrameworkUpda
 import io.github.gracegrc.regulatoryapi.domain.model.entity.FrameworkEntity;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.AuthorityNotFoundException;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.FrameworkAlreadyExistsException;
+import io.github.gracegrc.regulatoryapi.domain.model.exception.FrameworkHasFilesException;
 import io.github.gracegrc.regulatoryapi.domain.model.exception.FrameworkNotFoundException;
 import io.github.gracegrc.regulatoryapi.domain.repository.AuthorityRepository;
 import io.github.gracegrc.regulatoryapi.domain.repository.FrameworkRepository;
@@ -27,6 +29,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 
 @ExtendWith(MockitoExtension.class)
@@ -182,6 +185,16 @@ class FrameworkServiceImplTest {
 
 		assertThatThrownBy(() -> frameworkService.delete(ID)).isInstanceOf(FrameworkNotFoundException.class);
 		then(frameworkRepository).should(never()).deleteById(any());
+	}
+
+	@Test
+	void deleteOfAFrameworkWithFilesThrowsHasFiles() {
+		given(frameworkRepository.existsById(ID)).willReturn(true);
+		willThrow(new DataIntegrityViolationException("files_framework_id_fkey")).given(frameworkRepository)
+			.deleteById(ID);
+
+		assertThatThrownBy(() -> frameworkService.delete(ID)).isInstanceOf(FrameworkHasFilesException.class)
+			.hasMessage("Framework " + ID + " has files. Delete them first.");
 	}
 
 }
